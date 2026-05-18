@@ -1,35 +1,27 @@
-FROM node:20-alpine
+FROM node:20-slim
 
-# Install system dependencies
-RUN apk add --no-cache \
+# Install system dependencies needed for sharp and baileys
+RUN apt-get update && apt-get install -y \
+    libvips-dev \
+    ffmpeg \
     python3 \
     make \
     g++ \
-    ffmpeg \
-    imagemagick \
-    wget \
-    curl
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files first (layer caching)
 COPY package.json ./
 
-# Install dependencies
-RUN npm install --production
+RUN npm install --omit=dev
 
-# Copy all source files
+# Copy source code
 COPY . .
 
 # Create required directories
-RUN mkdir -p session database media temp plugins
+RUN mkdir -p session database media temp public plugins
 
-# Expose port
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
-
-# Start bot
 CMD ["node", "index.js"]

@@ -1,33 +1,42 @@
 services:
+  # ── Main Bot ───────────────────────────────────────────────────────────────
   - type: web
-    name: megamind-md
+    name: megamind-md-bot
     env: node
     buildCommand: npm install
     startCommand: node index.js
-    healthCheckPath: /health
     envVars:
+      - key: SESSION_ID
+        sync: false
+      - key: OWNER_NUMBER
+        sync: false
+      - key: OWNER_NAME
+        sync: false
       - key: BOT_NAME
         value: MEGAMIND-MD
       - key: BOT_MODE
         value: public
       - key: PREFIX
         value: "."
-      - key: LOG_LEVEL
-        value: info
-      - key: PORT
-        generateValue: false
-        value: "3000"
-      - key: OWNER_NUMBER
-        sync: false
-      - key: OWNER_NAME
+      - key: UPTIME_URL
         sync: false
       - key: OPENAI_API_KEY
         sync: false
       - key: GEMINI_API_KEY
         sync: false
-      - key: WEATHER_API_KEY
+      - key: PAIR_SITE_URL
         sync: false
     disk:
-      name: megamind-session
+      name: session-storage
       mountPath: /app/session
       sizeGB: 1
+
+  # ── Pairing Server (deploy separately) ────────────────────────────────────
+  - type: web
+    name: megamind-md-pairing
+    env: node
+    buildCommand: npm install
+    startCommand: node pair.js
+    envVars:
+      - key: PORT
+        value: 10000
